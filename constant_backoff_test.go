@@ -8,18 +8,18 @@ import (
 	"time"
 )
 
-var exponentialTestCases = []time.Duration{
+var constantTestCases = []time.Duration{
 	time.Second * 2,
-	time.Second * 4,
-	time.Second * 8,
-	time.Second * 16,
-	time.Second * 32,
+	time.Second * 2,
+	time.Second * 2,
+	time.Second * 2,
+	time.Second * 2,
 }
 
-func TestExponentialBackoff(t *testing.T) {
-	r := NewExponentialBackoffRetry(5)
+func TestConstantBackoff(t *testing.T) {
+	r := NewConstantBackoffRetry(5, time.Second*2)
 
-	for _, tc := range exponentialTestCases {
+	for _, tc := range constantTestCases {
 		next := r.Next()
 		if next != tc {
 			t.Errorf("Expected delay %v but recevied %v", tc, next)
@@ -28,7 +28,7 @@ func TestExponentialBackoff(t *testing.T) {
 	}
 }
 
-func TestExponentialBackoffRetry(t *testing.T) {
+func TestConstantBackoffRetry(t *testing.T) {
 	runCount := 0
 	maxRun := 3
 

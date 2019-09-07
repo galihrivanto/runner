@@ -8,7 +8,7 @@ import (
 const base = 2.0
 
 // ExponentialBackoffRetry is retry strategy which
-// increase delay between attempt
+// increase delay between each attempt
 type ExponentialBackoffRetry struct {
 	// retry counter
 	attempt int
