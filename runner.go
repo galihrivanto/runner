@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"errors"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -85,6 +86,18 @@ func (r *signalInterceptor) Handle(fn func(s os.Signal)) {
 	}
 }
 
+// doOperation wrap call to operation
+// ensure it handle unexpected panic while calling operation
+func doOperation(ctx context.Context, operation Operation) error {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("panic recoverred, err:", err)
+		}
+	}()
+
+	return operation(ctx)
+}
+
 // RunWithRetry execute operation with retry strategy.
 // It could be NoRetry, Exponential Backoff or constant backoff
 func RunWithRetry(ctx context.Context, operation Operation, retry RetryStrategy) SignalHandler {
@@ -94,15 +107,15 @@ func RunWithRetry(ctx context.Context, operation Operation, retry RetryStrategy)
 		defer cancel()
 
 		for {
-			// execute operation
-			err := operation(ctx)
+			// execute wrapped operation
+			err := doOperation(ctx, operation)
 			if err == nil {
 				// reset retry
 				retry.Reset()
 			}
 
 			// if should ben stopped
-			if err == nil || err == ErrGiveUp {
+			if err != nil && err == ErrGiveUp {
 				cancel()
 			}
 
